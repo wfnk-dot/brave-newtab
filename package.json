@@ -1,0 +1,9 @@
+{
+  "name": "brave-newtab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Brave-style new tab page with an animated background (browser extension).",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 --test-timeout=180000 tests/*.test.js"
+  }
+}
