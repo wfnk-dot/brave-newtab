@@ -45,6 +45,16 @@ Everything is in the **gear**, which only appears when your mouse is in the top-
 
 Click outside the panel, or the **×** at its top, to close it. Settings save automatically.
 
+### Favourites (your quick links)
+
+Move your mouse to the **top-left corner**: a faint **star** appears (like the gear on the right). Click it for your favourite sites; click one to go there.
+
+- **Add:** click the star → **Edit** → type a name (e.g. *YouTube*) and the address (e.g. *youtube.com*) → **Add**. Leave the name empty and it uses the site's name.
+- **Reorder / remove:** in **Edit**, use the up/down arrows and the **×**. Click **Done** when finished.
+- Click anywhere outside the list to close it. Nothing shows on the background until you open it.
+
+Brave's own "show bookmarks bar only on the new tab page" can't appear on an extension's page, so this replaces it.
+
 **Which files work?**
 - **Best:** MP4 or WebM video. They're smooth and easy on your computer, and large files are fine.
 - **Also fine:** GIF and animated WebP. They use more power than video, and a GIF can't really pause, so "Pause animation" shows a still picture of it.

@@ -396,7 +396,7 @@ describe('settings', () => {
       const text = await page.textContent('#clock');
       assert.match(text, /^(1[0-2]|[1-9]):\d{2}$/);
       const box = await page.locator('#clock').boundingBox();
-      assert.ok(box.x < 100 && box.y < 100, 'top-left');
+      assert.ok(box.x < 100 && box.y < 140, 'top-left, under the favourites star');
     } finally { await context.close(); }
   });
 });
@@ -469,5 +469,48 @@ describe('top sites (with a local test website)', () => {
       await context.close();
       server.close();
     }
+  });
+});
+
+describe('favourites', () => {
+  test('hidden star in the top-left: add, open, reorder, remove, persist', async () => {
+    const { context, userDir } = await launch();
+    const external = watchNetwork(context);
+    let page = await openNewTab(context);
+    try {
+      assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('favBtn')).opacity), '0', 'invisible until hovered');
+      await page.mouse.move(40, 36);
+      await page.waitForTimeout(400);
+      assert.ok(Number(await page.evaluate(() => getComputedStyle(document.getElementById('favBtn')).opacity)) > 0.3, 'shows on hover');
+      await page.click('#favBtn');
+      assert.equal(await page.isVisible('#favEmpty'), true, 'empty hint');
+      await page.click('#favEdit');
+      for (const [n, u] of [['YouTube', 'youtube.com'], ['', 'x.com'], ['Notion', 'https://www.notion.so/']]) {
+        await page.fill('#favName', n);
+        await page.fill('#favUrl', u);
+        await page.click('#favForm button[type=submit]');
+      }
+      await page.click('.fav-row:nth-child(3) button[title="Move up"]');
+      await page.click('#favEdit');   // Done
+      const rows = await page.locator('a.fav-row').evaluateAll((els) => els.map((e) => [e.textContent, e.getAttribute('href')]));
+      assert.deepEqual(rows, [['YouTube', 'https://youtube.com/'], ['Notion', 'https://www.notion.so/'], ['X', 'https://x.com/']]);
+      await page.screenshot({ path: path.join(SHOTS, 'favourites-open.png') });
+      await page.click('#favScrim');
+      assert.equal(await page.isVisible('#favPanel'), false, 'click outside closes it');
+      await context.close();
+
+      const again = await launch({ userDir });
+      page = await openNewTab(again.context);
+      await page.mouse.move(40, 36); await page.waitForTimeout(300);
+      await page.click('#favBtn');
+      await page.click('#favEdit');
+      await page.click('.fav-row:nth-child(1) button[title^="Remove"]');
+      await page.click('#favEdit');
+      const names = await page.locator('a.fav-row .fav-name').allTextContents();
+      assert.deepEqual(names, ['Notion', 'X'], 'kept after restart, removal works');
+      assert.equal(await page.evaluate(() => document.body.innerText.includes('Favourites')), true);
+      await again.context.close();
+      assert.deepEqual(external, []);
+    } catch (e) { await context.close().catch(() => {}); throw e; }
   });
 });

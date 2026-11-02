@@ -20,6 +20,7 @@
     clock24: false,
     topSites: false,
     hiddenSites: [],
+    favorites: [],     // [{ name, url }]
   };
 
   const $ = (id) => document.getElementById(id);
@@ -448,6 +449,115 @@
     refreshBackground();
   }
 
+  // ---------------------------------------------------------------- favourites
+
+  const favPanel = $('favPanel');
+  const favScrim = $('favScrim');
+  let favEditing = false;
+
+  function normalizeUrl(raw) {
+    let u = String(raw || '').trim();
+    if (!u) return null;
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u;
+    try {
+      const p = new URL(u);
+      return /^(https?|file|ftp):$/.test(p.protocol) ? p.href : null;
+    } catch (e) { return null; }
+  }
+
+  function hostName(url) {
+    try {
+      const h = new URL(url).hostname.replace(/^www\./, '');
+      const base = h.split('.').slice(-2, -1)[0] || h;
+      return base.charAt(0).toUpperCase() + base.slice(1);
+    } catch (e) { return url; }
+  }
+
+  const svgX = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M18.3 5.7a1 1 0 0 0-1.4 0L12 10.6 7.1 5.7a1 1 0 1 0-1.4 1.4l4.9 4.9-4.9 4.9a1 1 0 1 0 1.4 1.4l4.9-4.9 4.9 4.9a1 1 0 0 0 1.4-1.4L13.4 12l4.9-4.9a1 1 0 0 0 0-1.4z"/></svg>';
+  const svgUp = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 8l6 6-1.4 1.4L12 10.8l-4.6 4.6L6 14z"/></svg>';
+  const svgDown = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 16l-6-6 1.4-1.4 4.6 4.6 4.6-4.6L18 10z"/></svg>';
+
+  function iconButton(svg, title, onClick, disabled) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'icon-btn';
+    b.title = title;
+    b.setAttribute('aria-label', title);
+    b.innerHTML = svg;
+    b.disabled = !!disabled;
+    b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); onClick(); });
+    return b;
+  }
+
+  function moveFav(i, d) {
+    const list = [...settings.favorites];
+    const j = i + d;
+    if (j < 0 || j >= list.length) return;
+    [list[i], list[j]] = [list[j], list[i]];
+    settings.favorites = list;
+    save(true);
+    renderFavs();
+  }
+
+  function renderFavs() {
+    const box = $('favList');
+    box.textContent = '';
+    const list = settings.favorites || [];
+    list.forEach((f, i) => {
+      const row = document.createElement(favEditing ? 'div' : 'a');
+      row.className = 'fav-row';
+      if (!favEditing) { row.href = f.url; row.title = f.url; }
+      const img = document.createElement('img');
+      img.alt = '';
+      img.src = faviconUrl(f.url);
+      const name = document.createElement('span');
+      name.className = 'fav-name';
+      name.textContent = f.name;
+      row.append(img, name);
+      if (favEditing) {
+        row.append(
+          iconButton(svgUp, 'Move up', () => moveFav(i, -1), i === 0),
+          iconButton(svgDown, 'Move down', () => moveFav(i, 1), i === list.length - 1),
+          iconButton(svgX, 'Remove ' + f.name, () => {
+            settings.favorites = list.filter((_, k) => k !== i);
+            save(true);
+            renderFavs();
+          }));
+      }
+      box.appendChild(row);
+    });
+    $('favEmpty').hidden = list.length > 0 || favEditing;
+    $('favForm').hidden = !favEditing;
+    $('favEdit').textContent = favEditing ? 'Done' : 'Edit';
+  }
+
+  function openFavs() {
+    favEditing = false;
+    renderFavs();
+    favPanel.hidden = false;
+    favScrim.hidden = false;
+    $('favBtn').classList.add('open');
+  }
+  function closeFavs() {
+    favPanel.hidden = true;
+    favScrim.hidden = true;
+    $('favBtn').classList.remove('open');
+  }
+  $('favBtn').addEventListener('click', () => (favPanel.hidden ? openFavs() : closeFavs()));
+  favScrim.addEventListener('click', closeFavs);
+  $('favEdit').addEventListener('click', () => { favEditing = !favEditing; renderFavs(); });
+  $('favForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const url = normalizeUrl($('favUrl').value);
+    if (!url) { $('favUrl').focus(); return; }
+    const name = $('favName').value.trim() || hostName(url);
+    settings.favorites = [...(settings.favorites || []), { name, url }];
+    save(true);
+    $('favName').value = '';
+    $('favUrl').value = '';
+    renderFavs();
+  });
+
   // ---------------------------------------------------------------- upload
 
   function setStatus(text, isError) {
@@ -576,6 +686,7 @@
     applyLook();
     renderWidgets();
     if (!panel.hidden) { syncControls(); renderLibrary(); }
+    if (!favPanel.hidden) renderFavs();
     refreshBackground();
   });
 

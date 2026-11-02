@@ -27,6 +27,27 @@
     </button>
   </div>
 
+  <!-- Favourites: a star in the top-left corner, invisible until the mouse is there -->
+  <div id="favZone">
+    <button id="favBtn" type="button" title="Favourites" aria-label="Favourites">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 17.3l-5.4 3.2 1.4-6.1L3.3 10.3l6.2-.5L12 4l2.5 5.8 6.2.5-4.7 4.1 1.4 6.1z"/></svg>
+    </button>
+  </div>
+  <div id="favScrim" hidden></div>
+  <div id="favPanel" hidden aria-label="Favourites">
+    <div class="fav-head">
+      <span>Favourites</span>
+      <button id="favEdit" class="link-btn" type="button">Edit</button>
+    </div>
+    <div id="favList"></div>
+    <p id="favEmpty" class="hint" hidden>No favourites yet. Click <b>Edit</b> to add some.</p>
+    <form id="favForm" hidden autocomplete="off">
+      <input id="favName" type="text" placeholder="Name (e.g. YouTube)" maxlength="40">
+      <input id="favUrl" type="text" placeholder="Address (e.g. youtube.com)" maxlength="500">
+      <button class="btn primary" type="submit">Add</button>
+    </form>
+  </div>
+
   <!-- Settings panel -->
   <div id="scrim" hidden></div>
   <aside id="panel" hidden aria-label="Customize">
