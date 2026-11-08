@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Lavender Tabs (bright)",
+  "version": "1.0.0",
+  "description": "Dark Brave theme where the tab you're on (and the toolbar under it) is bright lavender.",
+  "theme": {
+    "colors": {
+      "frame": [19, 17, 24],
+      "frame_inactive": [14, 12, 18],
+      "background_tab": [19, 17, 24],
+      "background_tab_inactive": [14, 12, 18],
+      "tab_background_text": [141, 135, 152],
+      "tab_background_text_inactive": [110, 105, 120],
+
+      "toolbar": [153, 120, 219],
+      "tab_text": [26, 19, 37],
+      "toolbar_text": [26, 19, 37],
+      "toolbar_button_icon": [31, 23, 48],
+      "bookmark_text": [26, 19, 37],
+
+      "omnibox_background": [190, 167, 236],
+      "omnibox_text": [26, 19, 37],
+
+      "ntp_background": [19, 17, 24],
+      "ntp_text": [230, 220, 250]
+    }
+  }
+}

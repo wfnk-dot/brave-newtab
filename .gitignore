@@ -1,3 +1,4 @@
 node_modules/
 tests/fixtures/
 *.zip
+Cached Theme.pak

@@ -62,6 +62,30 @@ Brave's own "show bookmarks bar only on the new tab page" can't appear on an ext
 
 ---
 
+## Make the tab you're on easy to see (optional)
+
+Brave's dark tab bar makes the tab you're on almost the same colour as the others. This adds a small **theme** that makes it lavender (the same lavender as your other apps).
+
+- Dark Reader can't do this, and neither can the new tab extension: they only change web pages, not Brave's tab bar. A theme is the only thing that can.
+- It's a separate folder inside this one, so you add it as its own extension.
+
+| Folder | What it looks like |
+|---|---|
+| `tab-theme` | **Default.** The tab you're on and the toolbar under it turn soft dark lavender. The other tabs stay near-black. |
+| `tab-theme-bright` | The tab you're on and the toolbar turn **bright** lavender with dark text. Hard to miss. |
+
+![Before, default, bright](test-shots/tab-theme-before-default-bright.png)
+
+*Top: no theme. Middle: `tab-theme`. Bottom: `tab-theme-bright`.*
+
+**Add it:** `brave://extensions` → **Load unpacked** → open this extension's folder → pick the **`tab-theme`** folder inside it (or `tab-theme-bright`) → **Select**. It changes straight away.
+
+- **Switch:** load the other folder the same way. Brave uses one theme at a time, so the new one replaces the old one.
+- **Remove:** themes don't show in the extensions list. Go to `brave://settings/appearance` and click **Reset to default** next to *Theme*.
+- The tab you're on always has the same colour as the toolbar under it. Brave doesn't let a theme colour them separately.
+
+---
+
 ## Known limit: Brave's stats panel can't be shown
 
 Brave's stats card (trackers blocked, bandwidth saved, time saved) **can't be shown** on this page. Brave keeps those numbers to itself and doesn't let extensions read them. **Any** extension that replaces the new tab page loses them, including vToad.
