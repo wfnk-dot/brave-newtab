@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Lavender Tabs (original toolbar)",
+  "version": "1.0.0",
+  "description": "Keeps Brave's dark purple-black toolbar and purple icons; the tab you're on gets a lavender title.",
+  "theme": {
+    "colors": {
+      "frame": [8, 7, 11],
+      "frame_inactive": [8, 7, 11],
+      "background_tab": [8, 7, 11],
+      "background_tab_inactive": [8, 7, 11],
+      "tab_background_text": [120, 115, 132],
+      "tab_background_text_inactive": [95, 91, 105],
+
+      "toolbar": [20, 17, 30],
+      "tab_text": [185, 158, 242],
+      "toolbar_text": [225, 222, 232],
+      "toolbar_button_icon": [104, 86, 168],
+      "bookmark_text": [225, 222, 232],
+
+      "omnibox_background": [39, 36, 49],
+      "omnibox_text": [235, 233, 240],
+
+      "ntp_background": [0, 0, 0],
+      "ntp_text": [225, 222, 232]
+    }
+  }
+}

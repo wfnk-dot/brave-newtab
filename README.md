@@ -73,17 +73,21 @@ Brave's dark tab bar makes the tab you're on almost the same colour as the other
 |---|---|
 | `tab-theme` | **Default.** The tab you're on and the toolbar under it turn soft dark lavender. The other tabs stay near-black. |
 | `tab-theme-bright` | The tab you're on and the toolbar turn **bright** lavender with dark text. Hard to miss. |
-| `tab-theme-no-toolbar` | The toolbar stays **plain dark grey**. The tab you're on is lighter grey with a **lavender title**. The other tabs stay near-black. |
+| `tab-theme-original-toolbar` | **Keeps Brave's own dark purple-black toolbar and purple icons.** The tab you're on gets a **lavender title**, and the tab strip behind the other tabs is a little darker so it stands out. |
 
 ![Before, default, bright, plain toolbar](test-shots/tab-themes-compare.png)
 
-*From the top: no theme, `tab-theme`, `tab-theme-bright`, `tab-theme-no-toolbar`.*
+*From the top: no theme, `tab-theme`, `tab-theme-bright`, `tab-theme-original-toolbar`.*
 
-**Add it:** `brave://extensions` → **Load unpacked** → open this extension's folder → pick the **`tab-theme`** folder inside it (or `tab-theme-bright` / `tab-theme-no-toolbar`) → **Select**. It changes straight away.
+![Brave as it was, then tab-theme-original-toolbar](test-shots/tab-theme-original-toolbar-vs-brave.png)
+
+*Top: Brave with no theme. Bottom: `tab-theme-original-toolbar`.*
+
+**Add it:** `brave://extensions` → **Load unpacked** → open this extension's folder → pick the **`tab-theme`** folder inside it (or `tab-theme-bright` / `tab-theme-original-toolbar`) → **Select**. It changes straight away.
 
 - **Switch:** load the other folder the same way. Brave uses one theme at a time, so the new one replaces the old one.
 - **Remove:** themes don't show in the extensions list. Go to `brave://settings/appearance` and click **Reset to default** next to *Theme*.
-- The tab you're on always has the same colour as the toolbar under it. Brave doesn't let a theme colour them separately. If you don't want a lavender toolbar, use `tab-theme-no-toolbar`: the lavender is then only on the tab's title.
+- The tab you're on always has the same colour as the toolbar under it. Brave doesn't let a theme colour them separately. If you want Brave's own toolbar kept, use `tab-theme-original-toolbar`: the lavender is then only on the tab's title.
 
 ---
 
