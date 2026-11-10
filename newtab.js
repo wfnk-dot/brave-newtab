@@ -21,6 +21,7 @@
     topSites: false,
     hiddenSites: [],
     favorites: [],     // [{ name, url }]
+    favPurple: true,   // tint the favourite icons purple
   };
 
   const $ = (id) => document.getElementById(id);
@@ -80,6 +81,7 @@
     root.style.setProperty('--fx', settings.focusX + '%');
     root.style.setProperty('--fy', settings.focusY + '%');
     root.style.setProperty('--dim', String(settings.dim / 100));
+    document.body.classList.toggle('fav-purple', !!settings.favPurple);
   }
 
   // ---------------------------------------------------------------- background
@@ -310,6 +312,7 @@
     $('clock24').checked = settings.clock24;
     $('clock24Row').hidden = !settings.clock;
     $('topSitesOn').checked = settings.topSites;
+    $('favPurple').checked = settings.favPurple;
     $('restoreSites').hidden = !(settings.topSites && settings.hiddenSites.length);
     renderWideSelect();
   }
@@ -349,6 +352,11 @@
     settings.clock24 = e.target.checked;
     save(true);
     renderClock();
+  });
+  $('favPurple').addEventListener('change', (e) => {
+    settings.favPurple = e.target.checked;
+    save(true);
+    applyLook();
   });
   $('topSitesOn').addEventListener('change', (e) => {
     settings.topSites = e.target.checked;
