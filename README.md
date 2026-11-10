@@ -52,6 +52,7 @@ Move your mouse to the **top-left corner**: a faint **star** appears (like the g
 - **Add:** click the star → **Edit** → type a name (e.g. *YouTube*) and the address (e.g. *youtube.com*) → **Add**. Leave the name empty and it uses the site's name.
 - **Reorder / remove:** in **Edit**, use the up/down arrows and the **×**. Click **Done** when finished.
 - Click anywhere outside the list to close it. Nothing shows on the background until you open it.
+- The list is see-through glass, and the site icons are tinted purple. Don't like the purple? Turn off **Purple favourite icons** in the gear's settings.
 
 Brave's own "show bookmarks bar only on the new tab page" can't appear on an extension's page, so this replaces it.
 
