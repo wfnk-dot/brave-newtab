@@ -518,6 +518,7 @@
       const img = document.createElement('img');
       img.alt = '';
       img.src = faviconUrl(f.url);
+      img.addEventListener('load', () => purpleGlyph(img), { once: true });
       const name = document.createElement('span');
       name.className = 'fav-name';
       name.textContent = f.name;
@@ -537,21 +538,56 @@
     $('favEmpty').hidden = list.length > 0 || favEditing;
     $('favForm').hidden = !favEditing;
     $('favEdit').textContent = favEditing ? 'Done' : 'Edit';
+    favPanel.classList.toggle('editing', favEditing);
+  }
+
+  // A mostly-black logo (like X) can't be tinted, so draw its light shape in purple.
+  function purpleGlyph(img) {
+    if (!settings.favPurple || img.dataset.glyph) return;
+    try {
+      const n = 32, c = document.createElement('canvas');
+      c.width = c.height = n;
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0, n, n);
+      const d = g.getImageData(0, 0, n, n), p = d.data;
+      let solid = 0, dark = 0;
+      for (let i = 0; i < p.length; i += 4) {
+        if (p[i + 3] > 128) { solid++; if (0.3 * p[i] + 0.59 * p[i + 1] + 0.11 * p[i + 2] < 60) dark++; }
+      }
+      if (!solid || dark / solid < 0.6) return;
+      for (let i = 0; i < p.length; i += 4) {
+        const l = (0.3 * p[i] + 0.59 * p[i + 1] + 0.11 * p[i + 2]) / 255;
+        p[i] = 214; p[i + 1] = 170; p[i + 2] = 255;
+        p[i + 3] = Math.round(p[i + 3] * Math.min(1, l * 1.3));
+      }
+      g.putImageData(d, 0, 0);
+      img.dataset.glyph = '1';
+      img.classList.add('glyph');
+      img.src = c.toDataURL();
+    } catch (e) { /* leave the icon as it is */ }
   }
 
   function openFavs() {
     favEditing = false;
     renderFavs();
+    favPanel.classList.remove('closing', 'opening');
     favPanel.hidden = false;
+    void favPanel.offsetWidth;            // restart the animation
+    favPanel.classList.add('opening');
     favScrim.hidden = false;
     $('favBtn').classList.add('open');
   }
   function closeFavs() {
-    favPanel.hidden = true;
+    if (favPanel.hidden || favPanel.classList.contains('closing')) return;
     favScrim.hidden = true;
     $('favBtn').classList.remove('open');
+    favPanel.classList.remove('opening');
+    favPanel.classList.add('closing');
+    const done = () => { favPanel.classList.remove('closing'); favPanel.hidden = true; };
+    favPanel.addEventListener('animationend', done, { once: true });
+    setTimeout(() => { if (favPanel.classList.contains('closing')) done(); }, 400);
   }
-  $('favBtn').addEventListener('click', () => (favPanel.hidden ? openFavs() : closeFavs()));
+  $('favBtn').addEventListener('click', () => (favPanel.hidden || favPanel.classList.contains('closing') ? openFavs() : closeFavs()));
   favScrim.addEventListener('click', closeFavs);
   $('favEdit').addEventListener('click', () => { favEditing = !favEditing; renderFavs(); });
   $('favForm').addEventListener('submit', (e) => {

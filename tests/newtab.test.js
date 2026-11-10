@@ -483,6 +483,12 @@ describe('favourites', () => {
       await page.waitForTimeout(400);
       assert.ok(Number(await page.evaluate(() => getComputedStyle(document.getElementById('favBtn')).opacity)) > 0.3, 'shows on hover');
       await page.click('#favBtn');
+      assert.equal(await page.evaluate(() => document.getElementById('favPanel').classList.contains('opening')), true, 'opens with an animation');
+      assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('favPanel')).backgroundImage + getComputedStyle(document.getElementById('favPanel')).backgroundColor), 'nonergba(0, 0, 0, 0)', 'no panel behind the list');
+      await page.mouse.move(700, 600); await page.waitForTimeout(300);
+      assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('favEdit')).opacity), '0', 'Edit hidden until hovering the list');
+      await page.hover('.fav-head'); await page.waitForTimeout(300);
+      assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('favEdit')).opacity), '1', 'Edit shows on hover');
       assert.equal(await page.isVisible('#favEmpty'), true, 'empty hint');
       await page.click('#favEdit');
       for (const [n, u] of [['YouTube', 'youtube.com'], ['', 'x.com'], ['Notion', 'https://www.notion.so/']]) {
@@ -496,6 +502,7 @@ describe('favourites', () => {
       assert.deepEqual(rows, [['YouTube', 'https://youtube.com/'], ['Notion', 'https://www.notion.so/'], ['X', 'https://x.com/']]);
       await page.screenshot({ path: path.join(SHOTS, 'favourites-open.png') });
       await page.click('#favScrim');
+      await page.waitForSelector('#favPanel', { state: 'hidden', timeout: 2000 });   // after the closing animation
       assert.equal(await page.isVisible('#favPanel'), false, 'click outside closes it');
       await context.close();
 
