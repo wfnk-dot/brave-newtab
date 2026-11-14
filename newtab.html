@@ -32,6 +32,8 @@
     <button id="favBtn" type="button" title="Favourites" aria-label="Favourites">
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 17.3l-5.4 3.2 1.4-6.1L3.3 10.3l6.2-.5L12 4l2.5 5.8 6.2.5-4.7 4.1 1.4 6.1z"/></svg>
     </button>
+    <!-- One-click site: goes straight to one chosen website (set in the gear's settings) -->
+    <a id="quickLink" role="button"></a>
   </div>
   <div id="favScrim" hidden></div>
   <div id="favPanel" hidden aria-label="Favourites">
@@ -99,6 +101,17 @@
           <input id="dim" type="range" min="0" max="80" step="1">
           <output id="dimOut"></output>
         </div>
+      </section>
+
+      <section>
+        <h2>One-click site</h2>
+        <p class="hint">A button next to the favourites star that goes straight to this site. Like the star, it only shows when your mouse is in the top-left corner.</p>
+        <form id="quickForm" class="inline-form" autocomplete="off">
+          <input id="quickUrl" type="text" placeholder="Address (e.g. youtube.com)" maxlength="500">
+          <button class="btn primary" type="submit">Save</button>
+        </form>
+        <button id="quickClear" class="link-btn" type="button" hidden>Remove the one-click site</button>
+        <p id="quickStatus" class="status" hidden></p>
       </section>
 
       <section class="toggles">

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Brave New Tab (animated background)",
   "short_name": "Animated New Tab",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A plain, Brave-style new tab page with an animated video or GIF background that fills the window.",
   "chrome_url_overrides": {
     "newtab": "newtab.html"

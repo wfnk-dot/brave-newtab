@@ -22,6 +22,7 @@
     hiddenSites: [],
     favorites: [],     // [{ name, url }]
     favPurple: true,   // tint the favourite icons purple
+    quickLink: null,   // { url } — the one-click site next to the star
   };
 
   const $ = (id) => document.getElementById(id);
@@ -279,6 +280,7 @@
   function renderWidgets() {
     renderClock();
     renderTopSites();
+    renderQuick();
   }
 
   // ---------------------------------------------------------------- settings panel
@@ -313,6 +315,7 @@
     $('clock24Row').hidden = !settings.clock;
     $('topSitesOn').checked = settings.topSites;
     $('favPurple').checked = settings.favPurple;
+    syncQuickControls();
     $('restoreSites').hidden = !(settings.topSites && settings.hiddenSites.length);
     renderWideSelect();
   }
@@ -357,6 +360,7 @@
     settings.favPurple = e.target.checked;
     save(true);
     applyLook();
+    renderQuick();
   });
   $('topSitesOn').addEventListener('change', (e) => {
     settings.topSites = e.target.checked;
@@ -465,11 +469,14 @@
 
   function normalizeUrl(raw) {
     let u = String(raw || '').trim();
-    if (!u) return null;
+    if (!u || /\s/.test(u)) return null;
     if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u;
     try {
       const p = new URL(u);
-      return /^(https?|file|ftp):$/.test(p.protocol) ? p.href : null;
+      if (!/^(https?|file|ftp):$/.test(p.protocol)) return null;
+      // A web address needs a real host name, like youtube.com (or localhost).
+      if (/^https?:$/.test(p.protocol) && !/^(localhost|[^.%]+(\.[^.%]+)+)$/i.test(p.hostname)) return null;
+      return p.href;
     } catch (e) { return null; }
   }
 
@@ -539,6 +546,7 @@
     $('favForm').hidden = !favEditing;
     $('favEdit').textContent = favEditing ? 'Done' : 'Edit';
     favPanel.classList.toggle('editing', favEditing);
+    favScrim.hidden = !favEditing;        // while editing, a click outside closes the list
   }
 
   // A mostly-black logo (like X) can't be tinted, so draw its light shape in purple.
@@ -567,29 +575,61 @@
     } catch (e) { /* leave the icon as it is */ }
   }
 
+  const favBtn = $('favBtn');
+  const favIsOpen = () => !favPanel.hidden && !favPanel.classList.contains('closing');
+
   function openFavs() {
+    clearTimeout(favCloseTimer);
+    if (favIsOpen()) return;
     favEditing = false;
     renderFavs();
     favPanel.classList.remove('closing', 'opening');
     favPanel.hidden = false;
     void favPanel.offsetWidth;            // restart the animation
     favPanel.classList.add('opening');
-    favScrim.hidden = false;
-    $('favBtn').classList.add('open');
+    favBtn.classList.add('open');
   }
   function closeFavs() {
-    if (favPanel.hidden || favPanel.classList.contains('closing')) return;
+    clearTimeout(favCloseTimer);
+    if (!favIsOpen()) return;
+    favEditing = false;
     favScrim.hidden = true;
-    $('favBtn').classList.remove('open');
-    favPanel.classList.remove('opening');
+    favBtn.classList.remove('open');
+    favPanel.classList.remove('opening', 'editing');
     favPanel.classList.add('closing');
-    const done = () => { favPanel.classList.remove('closing'); favPanel.hidden = true; };
-    favPanel.addEventListener('animationend', done, { once: true });
-    setTimeout(() => { if (favPanel.classList.contains('closing')) done(); }, 400);
+    setTimeout(finishClose, 400);         // in case the animation doesn't run
   }
-  $('favBtn').addEventListener('click', () => (favPanel.hidden || favPanel.classList.contains('closing') ? openFavs() : closeFavs()));
+  function finishClose() {
+    if (!favPanel.classList.contains('closing')) return;   // reopened meanwhile
+    favPanel.classList.remove('closing');
+    favPanel.hidden = true;
+  }
+  favPanel.addEventListener('animationend', (e) => {
+    if (e.target !== favPanel) return;
+    if (favPanel.classList.contains('closing')) finishClose();
+    else favPanel.classList.remove('opening');   // so editing doesn't replay the fade-in
+  });
+
+  // Hovering the star drops the list down; it folds away shortly after the
+  // mouse leaves both the star and the list. While editing it stays open
+  // (click outside or Done, then move away, to close it).
+  let favCloseTimer = null;
+  const favPinned = () => favEditing;
+  function favHoverOut() {
+    clearTimeout(favCloseTimer);
+    favCloseTimer = setTimeout(() => { if (!favPinned()) closeFavs(); }, 280);
+  }
+  favBtn.addEventListener('mouseenter', openFavs);
+  favBtn.addEventListener('click', openFavs);
+  favBtn.addEventListener('mouseleave', favHoverOut);
+  favPanel.addEventListener('mouseenter', openFavs);
+  favPanel.addEventListener('mouseleave', favHoverOut);
   favScrim.addEventListener('click', closeFavs);
-  $('favEdit').addEventListener('click', () => { favEditing = !favEditing; renderFavs(); });
+  $('favEdit').addEventListener('click', () => {
+    favEditing = !favEditing;
+    renderFavs();
+    if (!favEditing && !favPanel.matches(':hover')) favHoverOut();
+  });
   $('favForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const url = normalizeUrl($('favUrl').value);
@@ -600,6 +640,78 @@
     $('favName').value = '';
     $('favUrl').value = '';
     renderFavs();
+  });
+
+  // ---------------------------------------------------------------- one-click site
+
+  const quick = $('quickLink');
+  const svgLinkAdd = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>';
+
+  function renderQuick() {
+    const q = settings.quickLink;
+    quick.textContent = '';
+    if (q && q.url) {
+      const name = hostName(q.url);
+      quick.href = q.url;
+      quick.title = name;
+      quick.setAttribute('aria-label', 'Go to ' + name);
+      quick.classList.remove('empty');
+      const img = document.createElement('img');
+      img.alt = '';
+      img.src = faviconUrl(q.url);
+      img.addEventListener('load', () => purpleGlyph(img), { once: true });
+      quick.appendChild(img);
+    } else {
+      quick.removeAttribute('href');
+      quick.title = 'Set up a one-click site';
+      quick.setAttribute('aria-label', 'Set up a one-click site');
+      quick.classList.add('empty');
+      quick.innerHTML = svgLinkAdd;
+    }
+  }
+
+  // Not set up yet: open the settings at the right spot instead.
+  quick.addEventListener('click', (e) => {
+    if (settings.quickLink && settings.quickLink.url) return;
+    e.preventDefault();
+    openPanel();
+    const input = $('quickUrl');
+    input.scrollIntoView({ block: 'center' });
+    input.focus();
+  });
+
+  function setQuickStatus(text, isError) {
+    const el = $('quickStatus');
+    el.hidden = !text;
+    el.textContent = text || '';
+    el.classList.toggle('error', !!isError);
+  }
+
+  function syncQuickControls() {
+    const q = settings.quickLink;
+    $('quickUrl').value = q && q.url ? q.url : '';
+    $('quickClear').hidden = !(q && q.url);
+    setQuickStatus('');
+  }
+
+  $('quickForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const raw = $('quickUrl').value;
+    if (!raw.trim()) { setQuickStatus('Type an address first, e.g. youtube.com', true); $('quickUrl').focus(); return; }
+    const url = normalizeUrl(raw);
+    if (!url) { setQuickStatus("That doesn't look like a web address.", true); $('quickUrl').focus(); return; }
+    settings.quickLink = { url };
+    save(true);
+    renderQuick();
+    $('quickUrl').value = url;
+    $('quickClear').hidden = false;
+    setQuickStatus('Saved. Hover the top-left corner to see it.');
+  });
+  $('quickClear').addEventListener('click', () => {
+    settings.quickLink = null;
+    save(true);
+    renderQuick();
+    syncQuickControls();
   });
 
   // ---------------------------------------------------------------- upload

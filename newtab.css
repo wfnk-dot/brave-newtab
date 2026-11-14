@@ -167,6 +167,7 @@ html, body {
   position: fixed;
   inset: 0;
   background: transparent;
+  z-index: 5;
 }
 #panel {
   position: fixed;
@@ -183,6 +184,7 @@ html, body {
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(24px);
   animation: panel-in 0.18s ease-out;
+  z-index: 6;
 }
 @keyframes panel-in {
   from { opacity: 0; transform: translateX(12px); }
@@ -373,11 +375,15 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
   position: fixed;
   top: 0;
   left: 0;
-  width: 140px;
+  width: 160px;
   height: 70px;
   padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  z-index: 3;
 }
-#favBtn {
+#favBtn, #quickLink {
   width: 36px;
   height: 36px;
   border: 0;
@@ -390,9 +396,16 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
   opacity: 0;
   transition: opacity 0.25s ease, background 0.15s ease;
 }
-#favZone:hover #favBtn, #favBtn.open { opacity: 0.55; }
-#favZone #favBtn:hover, #favBtn.open { opacity: 1; background: rgba(0, 0, 0, 0.45); }
-#favScrim { position: fixed; inset: 0; }
+#favZone:hover #favBtn, #favZone:hover #quickLink, #favBtn.open { opacity: 0.55; }
+#favZone #favBtn:hover, #favBtn.open, #favZone #quickLink:hover { opacity: 1; background: rgba(0, 0, 0, 0.45); }
+/* One-click site: the site's own icon, same purple look as the favourites */
+#quickLink { text-decoration: none; }
+#quickLink img { width: 18px; height: 18px; display: block; }
+body.fav-purple #quickLink img {
+  filter: grayscale(1) brightness(1.25) sepia(1) hue-rotate(228deg) saturate(3.2) brightness(1.05) drop-shadow(0 0 4px rgba(190, 120, 255, 0.75));
+}
+body.fav-purple #quickLink img.glyph { filter: drop-shadow(0 0 4px rgba(190, 120, 255, 0.8)); }
+#favScrim { position: fixed; inset: 0; z-index: 2; }
 #favPanel {
   position: fixed;
   top: 62px;
@@ -405,6 +418,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
   background: none;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85), 0 0 10px rgba(0, 0, 0, 0.5);
   transform-origin: 22px -24px;     /* grows out of the star */
+  z-index: 3;
 }
 #favPanel.opening { animation: favOpen 280ms cubic-bezier(0.2, 0.9, 0.3, 1.12) both; }
 #favPanel.opening .fav-row { animation: favRowIn 260ms ease-out both; }
@@ -467,3 +481,20 @@ body.fav-purple .fav-row img.glyph { filter: drop-shadow(0 0 4px rgba(190, 120, 
   user-select: text;
 }
 #favForm .btn { height: 32px; align-self: flex-end; }
+
+/* Text box + button on one line (settings panel) */
+.inline-form { display: flex; gap: 8px; }
+.inline-form input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-line);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  user-select: text;
+}
+.inline-form input:focus { outline: 2px solid var(--accent-2); outline-offset: 0; }

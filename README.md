@@ -47,12 +47,19 @@ Click outside the panel, or the **×** at its top, to close it. Settings save au
 
 ### Favourites (your quick links)
 
-Move your mouse to the **top-left corner**: a faint **star** appears (like the gear on the right). Click it for your favourite sites; click one to go there.
+Move your mouse to the **top-left corner**: a faint **star** appears (like the gear on the right). **Hover over the star** and your favourite sites drop down, no click needed; click one to go there. Move the mouse away and the list folds back up.
 
 - **Add:** click the star → **Edit** → type a name (e.g. *YouTube*) and the address (e.g. *youtube.com*) → **Add**. Leave the name empty and it uses the site's name.
 - **Reorder / remove:** in **Edit**, use the up/down arrows and the **×**. Click **Done** when finished.
-- Click anywhere outside the list to close it. Nothing shows on the background until you open it.
+- While you're editing, the list stays open even if the mouse wanders off; click anywhere outside it (or **Done**, then move away) to close it. Nothing shows on the background until you hover the star.
 - The list floats straight on the background (no panel), opens with a short smooth animation, and **Edit** only appears while your mouse is over it. Site icons are tinted purple (black logos like X turn into a purple shape); turn off **Purple favourite icons** in the gear's settings for normal colours.
+
+### One-click site
+
+Next to the star there's a second button for **one site you want without opening your favourites**. It's hidden the same way: it only appears when your mouse is in the top-left corner. Click it and you go straight there. It shows that site's own icon (purple, like the favourites).
+
+- **Set it up:** the first time, the button shows a **+**. Click it (or open the gear) and type the address under **One-click site**, then **Save**.
+- **Change or remove it:** gear → **One-click site**.
 
 Brave's own "show bookmarks bar only on the new tab page" can't appear on an extension's page, so this replaces it.
 

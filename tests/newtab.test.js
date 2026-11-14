@@ -473,49 +473,115 @@ describe('top sites (with a local test website)', () => {
 });
 
 describe('favourites', () => {
-  test('hidden star in the top-left: add, open, reorder, remove, persist', async () => {
+  const opacity = (page, id) => page.evaluate((i) => Number(getComputedStyle(document.getElementById(i)).opacity), id);
+
+  test('hidden star in the top-left: hover to open, add, reorder, remove, persist', async () => {
     const { context, userDir } = await launch();
     const external = watchNetwork(context);
     let page = await openNewTab(context);
     try {
-      assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('favBtn')).opacity), '0', 'invisible until hovered');
-      await page.mouse.move(40, 36);
+      assert.equal(await opacity(page, 'favBtn'), 0, 'invisible until hovered');
+      // Near the corner (but not on the star): the star shows, the list stays closed.
+      await page.mouse.move(130, 60);
       await page.waitForTimeout(400);
-      assert.ok(Number(await page.evaluate(() => getComputedStyle(document.getElementById('favBtn')).opacity)) > 0.3, 'shows on hover');
-      await page.click('#favBtn');
-      assert.equal(await page.evaluate(() => document.getElementById('favPanel').classList.contains('opening')), true, 'opens with an animation');
+      assert.ok(await opacity(page, 'favBtn') > 0.3, 'shows when the mouse is near');
+      assert.equal(await page.isVisible('#favPanel'), false, 'list not open yet');
+      // On the star: the list drops down, no click needed.
+      await page.hover('#favBtn');
+      await page.waitForSelector('#favPanel', { state: 'visible', timeout: 1000 });
+      assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('favPanel')).animationName), 'favOpen', 'opens with an animation');
       assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('favPanel')).backgroundImage + getComputedStyle(document.getElementById('favPanel')).backgroundColor), 'nonergba(0, 0, 0, 0)', 'no panel behind the list');
-      await page.mouse.move(700, 600); await page.waitForTimeout(300);
-      assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('favEdit')).opacity), '0', 'Edit hidden until hovering the list');
-      await page.hover('.fav-head'); await page.waitForTimeout(300);
-      assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('favEdit')).opacity), '1', 'Edit shows on hover');
+      // Moving from the star down into the list keeps it open.
+      await page.mouse.move(40, 58, { steps: 4 });
+      await page.hover('.fav-head'); await page.waitForTimeout(400);
+      assert.equal(await page.isVisible('#favPanel'), true, 'stays open while moving into the list');
+      assert.equal(await opacity(page, 'favEdit'), 1, 'Edit shows on hover');
       assert.equal(await page.isVisible('#favEmpty'), true, 'empty hint');
+      // Moving away folds it up.
+      await page.mouse.move(900, 600);
+      await page.waitForSelector('#favPanel', { state: 'hidden', timeout: 2000 });
+
+      await page.hover('#favBtn');
+      await page.hover('.fav-head');
       await page.click('#favEdit');
       for (const [n, u] of [['YouTube', 'youtube.com'], ['', 'x.com'], ['Notion', 'https://www.notion.so/']]) {
         await page.fill('#favName', n);
         await page.fill('#favUrl', u);
         await page.click('#favForm button[type=submit]');
       }
+      await page.mouse.move(900, 600); await page.waitForTimeout(600);
+      assert.equal(await page.isVisible('#favPanel'), true, 'stays open while editing, even with the mouse away');
       await page.click('.fav-row:nth-child(3) button[title="Move up"]');
       await page.click('#favEdit');   // Done
       const rows = await page.locator('a.fav-row').evaluateAll((els) => els.map((e) => [e.textContent, e.getAttribute('href')]));
       assert.deepEqual(rows, [['YouTube', 'https://youtube.com/'], ['Notion', 'https://www.notion.so/'], ['X', 'https://x.com/']]);
       await page.screenshot({ path: path.join(SHOTS, 'favourites-open.png') });
-      await page.click('#favScrim');
+      await page.mouse.move(900, 600);
       await page.waitForSelector('#favPanel', { state: 'hidden', timeout: 2000 });   // after the closing animation
-      assert.equal(await page.isVisible('#favPanel'), false, 'click outside closes it');
+      assert.equal(await page.isVisible('#favPanel'), false, 'moving away closes it');
+
+      // While editing, a click outside closes it.
+      await page.hover('#favBtn'); await page.hover('.fav-head');
+      await page.click('#favEdit');
+      await page.mouse.click(900, 600);
+      await page.waitForSelector('#favPanel', { state: 'hidden', timeout: 2000 });
       await context.close();
 
       const again = await launch({ userDir });
       page = await openNewTab(again.context);
-      await page.mouse.move(40, 36); await page.waitForTimeout(300);
-      await page.click('#favBtn');
+      await page.mouse.move(130, 60); await page.waitForTimeout(300);
+      await page.hover('#favBtn');
+      await page.hover('.fav-head');
       await page.click('#favEdit');
       await page.click('.fav-row:nth-child(1) button[title^="Remove"]');
       await page.click('#favEdit');
       const names = await page.locator('a.fav-row .fav-name').allTextContents();
       assert.deepEqual(names, ['Notion', 'X'], 'kept after restart, removal works');
       assert.equal(await page.evaluate(() => document.body.innerText.includes('Favourites')), true);
+      await again.context.close();
+      assert.deepEqual(external, []);
+    } catch (e) { await context.close().catch(() => {}); throw e; }
+  });
+
+  test('one-click site next to the star: hidden until hovered, set up in settings, persists', async () => {
+    const { context, userDir } = await launch();
+    const external = watchNetwork(context);
+    let page = await openNewTab(context);
+    try {
+      assert.equal(await opacity(page, 'quickLink'), 0, 'invisible until the mouse is near');
+      await page.mouse.move(130, 60); await page.waitForTimeout(400);
+      assert.ok(await opacity(page, 'quickLink') > 0.3, 'shows with the star');
+      const star = await page.locator('#favBtn').boundingBox();
+      const btn = await page.locator('#quickLink').boundingBox();
+      assert.ok(btn.x > star.x + star.width && Math.abs(btn.y - star.y) < 2, 'sits right next to the star');
+      // Hovering it does not open the favourites list.
+      await page.hover('#quickLink'); await page.waitForTimeout(400);
+      assert.equal(await page.isVisible('#favPanel'), false, 'favourites stay closed');
+      // Not set up yet: clicking opens settings at the right box.
+      assert.equal(await page.getAttribute('#quickLink', 'href'), null);
+      await page.click('#quickLink');
+      await page.waitForSelector('#panel', { state: 'visible' });
+      assert.equal(await page.evaluate(() => document.activeElement.id), 'quickUrl', 'address box is ready to type in');
+      await page.fill('#quickUrl', 'not a url');
+      await page.click('#quickForm button[type=submit]');
+      assert.equal(await page.evaluate(() => document.getElementById('quickStatus').classList.contains('error')), true, 'bad address is rejected');
+      await page.fill('#quickUrl', 'youtube.com');
+      await page.click('#quickForm button[type=submit]');
+      assert.equal(await page.getAttribute('#quickLink', 'href'), 'https://youtube.com/');
+      assert.equal(await page.getAttribute('#quickLink', 'title'), 'Youtube');
+      assert.equal(await page.locator('#quickLink img').count(), 1, 'shows the site icon');
+      await closeSettings(page);
+      await page.mouse.move(130, 60); await page.waitForTimeout(400);
+      await page.screenshot({ path: path.join(SHOTS, 'one-click-site.png'), clip: { x: 0, y: 0, width: 320, height: 120 } });
+      await context.close();
+
+      const again = await launch({ userDir });
+      page = await openNewTab(again.context);
+      assert.equal(await page.getAttribute('#quickLink', 'href'), 'https://youtube.com/', 'kept after restart');
+      await openSettings(page);
+      assert.equal(await page.inputValue('#quickUrl'), 'https://youtube.com/');
+      await page.click('#quickClear');
+      assert.equal(await page.getAttribute('#quickLink', 'href'), null, 'can be removed');
       await again.context.close();
       assert.deepEqual(external, []);
     } catch (e) { await context.close().catch(() => {}); throw e; }
